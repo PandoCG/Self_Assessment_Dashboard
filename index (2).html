@@ -1,0 +1,2530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Alignment Diagnostic — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --navy:    #0d1f36;
+    --navy-2:  #1a3a5c;
+    --teal:    #2ec4b6;
+    --teal-l:  #e4f7f5;
+    --teal-d:  #1a8a80;
+    --amber:   #f4a621;
+    --amber-l: #fef3e2;
+    --amber-d: #b87a10;
+    --gray-l:  #f2f5f8;
+    --gray-ll: #f7f9fb;
+    --blue-l:  #e8f0f8;
+    --green:   #2a9d8f;
+    --green-l: #edf7f5;
+    --red:     #e57373;
+    --red-l:   #fff5f5;
+    --divider: #d4dde8;
+    --mid:     #8493a8;
+    --dark:    #1a2b40;
+    --white:   #ffffff;
+    --shadow-sm: 0 1px 2px rgba(13, 31, 54, 0.06);
+    --shadow:    0 4px 12px rgba(13, 31, 54, 0.08);
+    --radius:    8px;
+    --radius-lg: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--gray-l);
+    color: var(--dark);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Top bar */
+  .topbar {
+    background: var(--navy);
+    color: var(--white);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .brand-mark {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--teal); position: relative;
+  }
+  .brand-mark::after {
+    content: '';
+    position: absolute; inset: 6px;
+    background: var(--navy); border-radius: 50%;
+  }
+  .brand-sep { width: 1px; height: 16px; background: rgba(255,255,255,0.25); margin: 0 4px; }
+  .brand-tag {
+    color: var(--teal); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;
+  }
+  .topbar-right {
+    display: flex; align-items: center; gap: 14px;
+    font-size: 12px; color: rgba(255,255,255,0.7);
+  }
+  .org-pill {
+    background: rgba(46, 196, 182, 0.15);
+    color: var(--teal);
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  .respondent-count {
+    color: rgba(255,255,255,0.85);
+    font-size: 12px;
+  }
+
+  /* Action button in topbar */
+  .topbar-btn {
+    background: rgba(255,255,255,0.1);
+    color: var(--white);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .topbar-btn:hover {
+    background: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.3);
+  }
+
+  /* Filter strip */
+  .filter-strip {
+    background: var(--white);
+    border-bottom: 1px solid var(--divider);
+    padding: 12px 28px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 60px;
+    z-index: 40;
+  }
+  .filter-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--mid);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .filter-group {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .filter-group label {
+    font-size: 12px;
+    color: var(--mid);
+    font-weight: 500;
+  }
+  .filter-strip select {
+    font-family: inherit;
+    font-size: 12px;
+    padding: 5px 10px;
+    border: 1px solid var(--divider);
+    border-radius: var(--radius);
+    background: var(--white);
+    color: var(--dark);
+    cursor: pointer;
+    min-width: 100px;
+  }
+  .filter-strip select:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 2px rgba(46, 196, 182, 0.15);
+  }
+  .clear-filters {
+    background: transparent;
+    border: none;
+    color: var(--teal);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-family: inherit;
+    font-weight: 500;
+  }
+  .clear-filters:hover { text-decoration: underline; }
+  .clear-filters:disabled { color: var(--divider); cursor: default; }
+  .clear-filters:disabled:hover { text-decoration: none; }
+
+  .filter-stat {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--mid);
+  }
+  .filter-stat strong { color: var(--navy); font-weight: 600; }
+
+  /* Main content */
+  .main {
+    padding: 24px 28px 60px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 16px;
+  }
+  .col-12 { grid-column: span 12; }
+  .col-8 { grid-column: span 8; }
+  .col-6 { grid-column: span 6; }
+  .col-4 { grid-column: span 4; }
+  .col-3 { grid-column: span 3; }
+
+  /* Cards */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--divider);
+    border-radius: var(--radius-lg);
+    padding: 20px 22px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+    letter-spacing: -0.005em;
+  }
+  .card-subtitle {
+    font-size: 11px;
+    color: var(--mid);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+
+  /* Stat cards */
+  .stat-card {
+    padding: 18px 22px;
+    background: var(--white);
+    border: 1px solid var(--divider);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--mid);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--navy);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .stat-detail {
+    font-size: 11px;
+    color: var(--mid);
+    margin-top: 4px;
+  }
+  .stat-band {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 100px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .band-high { background: var(--green-l); color: var(--green); }
+  .band-mid  { background: var(--amber-l); color: var(--amber-d); }
+  .band-low  { background: var(--red-l); color: #c62828; }
+
+  .stat-gauge {
+    display: block;
+    width: 100%;
+    height: 22px;
+    margin-top: 10px;
+    overflow: visible;
+  }
+  .stat-band-label {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 100px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: var(--teal-l);
+    color: var(--teal-d);
+  }
+  .stat-band-label.is-low { background: var(--red-l); color: #c62828; }
+  .stat-band-label.is-mid { background: var(--amber-l); color: var(--amber-d); }
+  .stat-band-label.is-high { background: var(--green-l); color: var(--green); }
+
+  /* Constellation plot */
+  .constellation-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1.3;
+    background: var(--gray-ll);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .constellation-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .legend-row {
+    display: flex; flex-wrap: wrap; gap: 16px;
+    margin-top: 12px;
+    font-size: 11px; color: var(--mid);
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .legend-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    display: inline-block;
+  }
+
+  /* Heatmap */
+  .heatmap-wrapper { overflow-x: auto; }
+  .heatmap-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+  .heatmap-table th, .heatmap-table td {
+    padding: 8px 6px;
+    text-align: center;
+    border: 1px solid var(--white);
+  }
+  .heatmap-table th {
+    color: var(--mid);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 10px;
+    background: var(--white);
+  }
+  .heatmap-table th:first-child {
+    text-align: left;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--navy);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .heatmap-table td:first-child {
+    text-align: left;
+    color: var(--navy);
+    font-weight: 500;
+    background: var(--white);
+    border: none;
+  }
+  .heatmap-cell {
+    font-weight: 600;
+    color: var(--white);
+    border-radius: 4px;
+    min-width: 45px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
+  .heatmap-cell.empty {
+    background: var(--gray-l);
+    color: var(--mid);
+    font-weight: 400;
+    text-shadow: none;
+  }
+
+  /* Tables */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .data-table th {
+    text-align: left;
+    color: var(--mid);
+    font-weight: 500;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--divider);
+  }
+  .data-table th:last-child, .data-table td:last-child { text-align: right; }
+  .data-table td {
+    padding: 10px;
+    color: var(--dark);
+    border-bottom: 1px solid var(--divider);
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table .rank-num {
+    color: var(--mid);
+    font-weight: 600;
+    width: 24px;
+    text-align: center;
+  }
+  .gap-bar-container {
+    display: inline-block;
+    width: 80px;
+    height: 6px;
+    background: var(--gray-l);
+    border-radius: 100px;
+    margin-left: 8px;
+    vertical-align: middle;
+    overflow: hidden;
+  }
+  .gap-bar-fill {
+    height: 100%;
+    background: var(--amber);
+    border-radius: 100px;
+  }
+
+  /* Archetype mix bars */
+  .archetype-mix {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .archetype-row {
+    display: grid;
+    grid-template-columns: 130px 1fr 50px;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+  }
+  .archetype-name {
+    color: var(--navy);
+    font-weight: 500;
+  }
+  .archetype-bar {
+    height: 14px;
+    background: var(--gray-l);
+    border-radius: 100px;
+    overflow: hidden;
+    position: relative;
+  }
+  .archetype-bar-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 100px;
+    transition: width 0.4s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  .archetype-row.dominant .archetype-bar-fill { background: var(--teal-d); }
+  .archetype-pct {
+    text-align: right;
+    color: var(--navy);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Radar wrapper */
+  .radar-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    max-height: 380px;
+  }
+  .radar-wrapper canvas { max-width: 100%; max-height: 100%; }
+
+  /* Empty state */
+  .empty-state {
+    background: var(--white);
+    border: 1px dashed var(--divider);
+    border-radius: var(--radius-lg);
+    padding: 60px 32px;
+    text-align: center;
+    color: var(--mid);
+  }
+  .empty-state h2 {
+    font-size: 22px;
+    color: var(--navy);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .empty-state p { font-size: 14px; margin-bottom: 20px; max-width: 480px; margin-left: auto; margin-right: auto; }
+  .empty-actions {
+    display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+    margin-top: 24px;
+  }
+
+  /* Generic buttons */
+  .btn {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 18px;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary {
+    background: var(--navy);
+    color: var(--white);
+  }
+  .btn-primary:hover { background: var(--navy-2); }
+  .btn-secondary {
+    background: var(--white);
+    color: var(--navy);
+    border-color: var(--divider);
+  }
+  .btn-secondary:hover {
+    border-color: var(--navy);
+    background: var(--gray-l);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--mid);
+  }
+  .btn-ghost:hover { color: var(--navy); }
+
+  /* Modal */
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(13, 31, 54, 0.5);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-bg.visible { display: flex; }
+  .modal {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 28px 32px;
+    max-width: 580px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(13, 31, 54, 0.25);
+  }
+  .modal h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 8px;
+  }
+  .modal p {
+    font-size: 13px;
+    color: var(--mid);
+    margin-bottom: 16px;
+  }
+  .modal textarea {
+    width: 100%;
+    min-height: 200px;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 11px;
+    padding: 12px;
+    border: 1px solid var(--divider);
+    border-radius: var(--radius);
+    resize: vertical;
+  }
+  .modal-actions {
+    display: flex; justify-content: flex-end; gap: 10px;
+    margin-top: 20px;
+  }
+
+  /* Recall gallery */
+  .recall-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    max-height: 380px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .recall-card {
+    background: var(--gray-ll);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    font-size: 12px;
+    border-left: 3px solid var(--teal);
+  }
+  .recall-card.level-c { border-left-color: var(--navy); }
+  .recall-card.level-senior { border-left-color: var(--navy-2); }
+  .recall-card.level-middle { border-left-color: var(--teal); }
+  .recall-card.level-ic { border-left-color: var(--amber); }
+  .recall-card.level-frontline { border-left-color: var(--green); }
+  .recall-meta {
+    font-size: 10px;
+    color: var(--mid);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+  }
+  .recall-list { list-style: none; padding-left: 18px; position: relative; }
+  .recall-list li {
+    margin-bottom: 4px;
+    color: var(--dark);
+    font-weight: 400;
+    line-height: 1.4;
+    position: relative;
+  }
+  .recall-list li::before {
+    content: counter(item);
+    counter-increment: item;
+    position: absolute;
+    left: -18px;
+    color: var(--teal);
+    font-weight: 600;
+    font-size: 10px;
+  }
+  .recall-list { counter-reset: item; }
+
+  /* Free-text gallery */
+  .freetext-gallery {
+    display: flex; flex-direction: column; gap: 8px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .freetext-card {
+    padding: 10px 14px;
+    background: var(--gray-ll);
+    border-radius: var(--radius);
+    font-size: 12px;
+    line-height: 1.5;
+    border-left: 3px solid var(--amber);
+  }
+  .freetext-meta {
+    font-size: 10px;
+    color: var(--mid);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .freetext-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+  .freetext-tab {
+    padding: 6px 14px;
+    font-size: 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    color: var(--mid);
+    border: 1px solid transparent;
+    background: transparent;
+    font-family: inherit;
+  }
+  .freetext-tab.active {
+    background: var(--teal-l);
+    color: var(--teal-d);
+    border-color: var(--teal);
+    font-weight: 500;
+  }
+
+  /* Empty mini state inside cards */
+  .mini-empty {
+    text-align: center;
+    color: var(--mid);
+    font-size: 12px;
+    padding: 24px 8px;
+  }
+
+  /* Tooltip */
+  .tooltip {
+    position: absolute;
+    background: var(--navy);
+    color: var(--white);
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    font-size: 11px;
+    pointer-events: none;
+    z-index: 60;
+    box-shadow: var(--shadow);
+    max-width: 260px;
+    line-height: 1.4;
+  }
+  .tooltip strong {
+    color: var(--teal);
+    font-size: 13px;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .tooltip .tt-meta {
+    color: rgba(255,255,255,0.7);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+  .tooltip .tt-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 2px;
+  }
+  .tooltip .tt-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.15);
+    margin: 6px 0 4px;
+  }
+  .tooltip .tt-sub {
+    color: rgba(255,255,255,0.85);
+    font-size: 10px;
+  }
+  .tooltip .tt-sub span:last-child {
+    color: var(--teal);
+    font-weight: 600;
+  }
+
+  @media (max-width: 980px) {
+    .col-8, .col-6, .col-4, .col-3 { grid-column: span 12; }
+    .topbar { padding: 12px 16px; }
+    .filter-strip { padding: 10px 16px; gap: 8px; top: 56px; }
+    .main { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <span>Pando</span>
+    <span class="brand-sep"></span>
+    <span class="brand-tag">Alignment Diagnostic — Dashboard</span>
+  </div>
+  <div class="topbar-right">
+    <span class="org-pill" id="org-pill">—</span>
+    <span class="respondent-count" id="respondent-count">0 responses</span>
+    <button class="topbar-btn" onclick="openLoadModal()">Load data</button>
+  </div>
+</header>
+
+<!-- Filter strip -->
+<div class="filter-strip" id="filter-strip" style="display: none;">
+  <span class="filter-label">Filter</span>
+  <div class="filter-group">
+    <label>Level</label>
+    <select id="filter-level">
+      <option value="">All</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Function</label>
+    <select id="filter-function">
+      <option value="">All</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Tenure</label>
+    <select id="filter-tenure">
+      <option value="">All</option>
+    </select>
+  </div>
+  <div class="filter-group" id="filter-bu-group" style="display: none;">
+    <label>Business unit</label>
+    <select id="filter-bu">
+      <option value="">All</option>
+    </select>
+  </div>
+  <button class="clear-filters" id="clear-filters" onclick="clearFilters()" disabled>Clear</button>
+  <span class="filter-stat" id="filter-stat"></span>
+</div>
+
+<!-- Main content -->
+<main class="main">
+
+  <!-- Empty state when no data loaded -->
+  <div class="empty-state" id="empty-state">
+    <h2>Workshop dashboard</h2>
+    <p>Load submissions from your respondents to begin analysis. The dashboard will compute the alignment score, archetype distribution, and demographic gaps live as you filter.</p>
+    <div class="empty-actions">
+      <button class="btn btn-primary" onclick="openLoadModal()">Load response data</button>
+      <button class="btn btn-secondary" onclick="loadDemoData('mixed')">Try demo data</button>
+    </div>
+  </div>
+
+  <!-- Live dashboard -->
+  <div id="dashboard" style="display: none;">
+
+    <!-- Headline stat cards -->
+    <div class="grid" style="margin-bottom: 16px;">
+      <div class="col-3">
+        <div class="stat-card">
+          <div class="stat-label">Alignment Score</div>
+          <div class="stat-value" id="stat-alignment">—</div>
+          <div id="stat-alignment-band"></div>
+          <svg class="stat-gauge" id="gauge-alignment" viewBox="0 0 200 28" preserveAspectRatio="none"></svg>
+          <div class="stat-detail">Inverse of dispersion across (X, Y)</div>
+        </div>
+      </div>
+      <div class="col-3">
+        <div class="stat-card">
+          <div class="stat-label">Dominant Archetype</div>
+          <div class="stat-value" id="stat-archetype" style="font-size: 22px;">—</div>
+          <div class="stat-detail" id="stat-archetype-detail">—</div>
+        </div>
+      </div>
+      <div class="col-3">
+        <div class="stat-card">
+          <div class="stat-label">Strategic Coherence</div>
+          <div class="stat-value" id="stat-x">—</div>
+          <div id="stat-x-label" class="stat-band-label"></div>
+          <svg class="stat-gauge" id="gauge-x" viewBox="0 0 200 28" preserveAspectRatio="none"></svg>
+          <div class="stat-detail">X-axis · 0–100</div>
+        </div>
+      </div>
+      <div class="col-3">
+        <div class="stat-card">
+          <div class="stat-label">Execution Coordination</div>
+          <div class="stat-value" id="stat-y">—</div>
+          <div id="stat-y-label" class="stat-band-label"></div>
+          <svg class="stat-gauge" id="gauge-y" viewBox="0 0 200 28" preserveAspectRatio="none"></svg>
+          <div class="stat-detail">Y-axis · 0–100</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Constellation + Archetype mix -->
+    <div class="grid" style="margin-bottom: 16px;">
+      <div class="col-8">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Respondent constellation</div>
+              <div class="card-subtitle" style="margin-top: 2px;">Each dot is one respondent · grey stars are archetype centroids</div>
+            </div>
+          </div>
+          <div class="constellation-wrapper">
+            <svg class="constellation-svg" id="constellation" viewBox="0 0 700 540" preserveAspectRatio="xMidYMid meet"></svg>
+          </div>
+          <div class="legend-row" id="constellation-legend"></div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card" style="height: 100%;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Archetype distribution</div>
+              <div class="card-subtitle" style="margin-top: 2px;">Probabilistic mix across all respondents</div>
+            </div>
+          </div>
+          <div class="archetype-mix" id="archetype-mix"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Radar + Heatmap -->
+    <div class="grid" style="margin-bottom: 16px;" id="row-radar-heatmap">
+      <div class="col-6" data-card-col="radar">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Sub-dimension scores</div>
+              <div class="card-subtitle" style="margin-top: 2px;">Comparison across organizational levels</div>
+            </div>
+          </div>
+          <div class="radar-wrapper">
+            <canvas id="radar-chart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-6" data-card-col="heatmap">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Perception heatmap</div>
+              <div class="card-subtitle" style="margin-top: 2px;">Sub-dimension scores by level</div>
+            </div>
+          </div>
+          <div class="heatmap-wrapper">
+            <table class="heatmap-table" id="heatmap-table"></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fault lines + Demographic gaps -->
+    <div class="grid" style="margin-bottom: 16px;" id="row-fault-demo">
+      <div class="col-6" data-card-col="fault-lines">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Fault lines</div>
+              <div class="card-subtitle" style="margin-top: 2px;">Sub-dimensions where the org disagrees with itself most</div>
+            </div>
+          </div>
+          <table class="data-table" id="fault-lines-table"></table>
+        </div>
+      </div>
+      <div class="col-6" data-card-col="demo-gaps">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Top demographic gaps</div>
+              <div class="card-subtitle" style="margin-top: 2px;">Where misalignment lives — biggest spreads first</div>
+            </div>
+          </div>
+          <table class="data-table" id="demo-gaps-table"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recall gallery -->
+    <div class="grid" style="margin-bottom: 16px;" id="row-recall">
+      <div class="col-12" data-card-col="recall">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Stated priorities</div>
+              <div class="card-subtitle" style="margin-top: 2px;">Each respondent's recall of the top 3 — color-coded by level</div>
+            </div>
+          </div>
+          <div class="recall-gallery" id="recall-gallery"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Free-text gallery -->
+    <div class="grid" id="row-freetext">
+      <div class="col-12" data-card-col="freetext">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Open-ended responses</div>
+              <div class="card-subtitle" style="margin-top: 2px;">Specific examples respondents shared</div>
+            </div>
+          </div>
+          <div class="freetext-tabs">
+            <button class="freetext-tab active" id="ft-tab-1" onclick="setFTTab(1)">Decision ownership examples</button>
+            <button class="freetext-tab" id="ft-tab-2" onclick="setFTTab(2)">Stated vs. rewarded values</button>
+          </div>
+          <div class="freetext-gallery" id="freetext-gallery"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- Load data modal -->
+<div class="modal-bg" id="load-modal">
+  <div class="modal">
+    <h2>Load response data</h2>
+    <p>Drop one or more JSON files from your respondents, or paste an array of JSON objects directly. The dashboard expects the schema produced by the survey tool.</p>
+
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px;">
+      <label class="btn btn-secondary" style="cursor: pointer;">
+        <input type="file" id="file-input" accept=".json,application/json" multiple style="display: none;" />
+        Choose JSON files
+      </label>
+      <span style="font-size: 11px; color: var(--mid);">or</span>
+      <button class="btn btn-secondary" onclick="loadDemoData('mixed')">Demo: mixed</button>
+      <button class="btn btn-secondary" onclick="loadDemoData('clustered')">Demo: clustered</button>
+      <button class="btn btn-secondary" onclick="loadDemoData('stratified')">Demo: stratified</button>
+    </div>
+
+    <p style="margin-bottom: 8px;">Or paste an array of submission objects:</p>
+    <textarea id="paste-input" placeholder='[{"respondent_id": "...", "raw_answers": {...}, ...}, ...]'></textarea>
+    <div style="font-size: 11px; color: var(--red); margin-top: 6px; display: none;" id="load-error"></div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeLoadModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="loadFromPaste()">Load pasted JSON</button>
+    </div>
+
+    <div style="margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--divider); display: flex; justify-content: space-between; align-items: center;">
+      <span style="font-size: 12px; color: var(--mid);">Currently loaded: <strong id="loaded-count" style="color: var(--navy);">0</strong> responses</span>
+      <button class="btn btn-ghost" id="clear-data-btn" onclick="clearAllData()" style="color: #c62828;">Clear all data</button>
+    </div>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip" style="display: none;"></div>
+
+<script>
+// =============================================================================
+// CONFIG: Question bank, archetypes, scoring math (mirrors IP doc v0.2)
+// =============================================================================
+
+const QUESTIONS = [
+  { id: 'SC1', dim: 'SC', reverse: false }, { id: 'SC2', dim: 'SC', reverse: true },
+  { id: 'SC3', dim: 'SC', reverse: false }, { id: 'SC4', dim: 'SC', reverse: true },
+  { id: 'SCO1', dim: 'SCO', reverse: false }, { id: 'SCO2', dim: 'SCO', reverse: false },
+  { id: 'SCO3', dim: 'SCO', reverse: false }, { id: 'SCO4', dim: 'SCO', reverse: false },
+  { id: 'RA1', dim: 'RA', reverse: false }, { id: 'RA2', dim: 'RA', reverse: false },
+  { id: 'RA3', dim: 'RA', reverse: true }, { id: 'RA4', dim: 'RA', reverse: false },
+  { id: 'DR1', dim: 'DR', reverse: false }, { id: 'DR2', dim: 'DR', reverse: false },
+  { id: 'DR3', dim: 'DR', reverse: true }, { id: 'DR4', dim: 'DR', reverse: false },
+  { id: 'DR5', dim: 'DR', reverse: false },
+  { id: 'CT1', dim: 'CT', reverse: false }, { id: 'CT2', dim: 'CT', reverse: false },
+  { id: 'CT3', dim: 'CT', reverse: false }, { id: 'CT4', dim: 'CT', reverse: false },
+  { id: 'HC1', dim: 'HC', reverse: false }, { id: 'HC2', dim: 'HC', reverse: true },
+  { id: 'HC3', dim: 'HC', reverse: false }, { id: 'HC4', dim: 'HC', reverse: false },
+  { id: 'HC5', dim: 'HC', reverse: false },
+  { id: 'AC1', dim: 'AC', reverse: false }, { id: 'AC2', dim: 'AC', reverse: false },
+  { id: 'AC3', dim: 'AC', reverse: true }, { id: 'AC4', dim: 'AC', reverse: false },
+  { id: 'CR1', dim: 'CR', reverse: false }, { id: 'CR2', dim: 'CR', reverse: false },
+  { id: 'CR3', dim: 'CR', reverse: true }, { id: 'CR4', dim: 'CR', reverse: false }
+];
+
+const DIMS = ['SC', 'SCO', 'RA', 'DR', 'CT', 'HC', 'AC', 'CR'];
+const DIM_LABELS = {
+  'SC':  'Strategic Clarity',
+  'SCO': 'Strategic Coherence',
+  'RA':  'Resource Alignment',
+  'DR':  'Decision Rights',
+  'CT':  'Cascade Translation',
+  'HC':  'Horizontal Coordination',
+  'AC':  'Adaptive Capacity',
+  'CR':  'Cultural Reinforcement'
+};
+
+// Archetype centroids, ordered as DIMS: [SC, SCO, RA, DR, CT, HC, AC, CR]
+const ARCHETYPES = [
+  { name: 'Unanchored',         centroid: [25, 25, 30, 35, 25, 35, 35, 35], short: 'Low strategy, low execution' },
+  { name: 'Compliant in Name',  centroid: [65, 50, 35, 55, 55, 30, 30, 25], short: 'Stated alignment, no follow-through' },
+  { name: 'Fragmented',         centroid: [40, 30, 40, 55, 45, 35, 45, 50], short: 'Strong silos, weak enterprise' },
+  { name: 'Bureaucrat',         centroid: [70, 65, 65, 80, 65, 50, 30, 50], short: 'Clear strategy, slow execution' },
+  { name: 'Reactive',           centroid: [40, 35, 40, 55, 45, 60, 75, 55], short: 'Fast pivots, no compounding' },
+  { name: 'Disciplined',        centroid: [85, 80, 80, 85, 80, 75, 30, 70], short: 'Aligned but rigid' },
+  { name: 'Responsive',         centroid: [55, 50, 60, 70, 60, 85, 80, 75], short: 'Tactically strong, strategically weak' },
+  { name: 'Resilient',          centroid: [85, 80, 80, 85, 80, 85, 85, 85], short: 'Aligned and adaptive' },
+  { name: 'Inert',              centroid: [20, 20, 25, 30, 20, 25, 20, 15], short: 'Post-failure cynicism' }
+];
+
+const TAU = 30; // Softmax temperature
+const ALIGN_MULT = 1.5; // Alignment-score dispersion multiplier
+
+const LEVEL_ORDER = ['Owner', 'C-suite', 'Senior leader', 'Middle manager', 'Manager', 'Individual contributor', 'Frontline staff'];
+const LEVEL_COLORS = {
+  'Owner':                  '#1a8a80',
+  'C-suite':                '#0d1f36',
+  'Senior leader':          '#1a3a5c',
+  'Middle manager':         '#2ec4b6',
+  'Manager':                '#2ec4b6',
+  'Individual contributor': '#f4a621',
+  'Frontline staff':        '#2a9d8f'
+};
+const LEVEL_SHORT = {
+  'Owner': 'Owner',
+  'C-suite': 'C-suite',
+  'Senior leader': 'Senior',
+  'Middle manager': 'Middle',
+  'Manager': 'Manager',
+  'Individual contributor': 'IC',
+  'Frontline staff': 'Frontline'
+};
+
+// =============================================================================
+// MATH: Per-respondent and org-level computations
+// =============================================================================
+
+function scoreItem(qid, raw) {
+  const q = QUESTIONS.find(x => x.id === qid);
+  if (!q) return null;
+  if (q.reverse) return ((5 - raw) / 4) * 100;
+  return ((raw - 1) / 4) * 100;
+}
+
+function computeRespondentScores(submission) {
+  const itemScores = {};
+  Object.entries(submission.raw_answers).forEach(([qid, raw]) => {
+    itemScores[qid] = scoreItem(qid, raw);
+  });
+
+  // Per-dim scores
+  const subDimScores = {};
+  DIMS.forEach(d => {
+    const items = QUESTIONS.filter(q => q.dim === d).map(q => itemScores[q.id]);
+    const valid = items.filter(s => s != null && !isNaN(s));
+    subDimScores[d] = valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : 0;
+  });
+
+  // Composite axes
+  const X = (subDimScores.SC + subDimScores.SCO + subDimScores.RA + subDimScores.CT) / 4;
+  const Y = (subDimScores.DR + subDimScores.HC + subDimScores.AC + subDimScores.CR) / 4;
+
+  // 8D vector in DIMS order
+  const v = DIMS.map(d => subDimScores[d]);
+
+  // Distance to each archetype, then softmax
+  const distances = ARCHETYPES.map(a => {
+    let sumSq = 0;
+    for (let i = 0; i < 8; i++) sumSq += (v[i] - a.centroid[i]) ** 2;
+    return Math.sqrt(sumSq);
+  });
+  const expVals = distances.map(d => Math.exp(-d / TAU));
+  const sumExp = expVals.reduce((a, b) => a + b, 0);
+  const probs = expVals.map(e => e / sumExp);
+
+  // Find dominant archetype
+  let maxIdx = 0;
+  probs.forEach((p, i) => { if (p > probs[maxIdx]) maxIdx = i; });
+
+  return {
+    ...submission,
+    sub_dim_scores: subDimScores,
+    axes: { X, Y },
+    archetype_probs: probs,
+    dominant_archetype: ARCHETYPES[maxIdx].name,
+    dominant_archetype_idx: maxIdx,
+    archetype_confidence: probs[maxIdx]
+  };
+}
+
+function computeOrgRollup(respondents) {
+  if (!respondents.length) return null;
+
+  const Xs = respondents.map(r => r.axes.X);
+  const Ys = respondents.map(r => r.axes.Y);
+  const X_org = Xs.reduce((a, b) => a + b, 0) / Xs.length;
+  const Y_org = Ys.reduce((a, b) => a + b, 0) / Ys.length;
+
+  // Alignment score
+  const dists = respondents.map(r => Math.sqrt((r.axes.X - X_org) ** 2 + (r.axes.Y - Y_org) ** 2));
+  const spread = dists.reduce((a, b) => a + b, 0) / dists.length;
+  const alignmentScore = Math.max(0, Math.min(100, 100 - spread * ALIGN_MULT));
+
+  // Archetype mix (mean of probability vectors)
+  const archetypeMix = ARCHETYPES.map((_, i) => {
+    return respondents.reduce((sum, r) => sum + r.archetype_probs[i], 0) / respondents.length;
+  });
+
+  // Plurality (count of dominant archetypes)
+  const archetypePlurality = {};
+  ARCHETYPES.forEach(a => archetypePlurality[a.name] = 0);
+  respondents.forEach(r => archetypePlurality[r.dominant_archetype]++);
+
+  // Sub-dim means and variances
+  const subDimMeans = {}, subDimVariances = {};
+  DIMS.forEach(d => {
+    const vals = respondents.map(r => r.sub_dim_scores[d]);
+    const m = vals.reduce((a, b) => a + b, 0) / vals.length;
+    subDimMeans[d] = m;
+    subDimVariances[d] = vals.reduce((acc, v) => acc + (v - m) ** 2, 0) / vals.length;
+  });
+
+  // Fault lines: rank by variance
+  const faultLines = DIMS.map(d => ({
+    dimension: d,
+    label: DIM_LABELS[d],
+    variance: subDimVariances[d],
+    stdev: Math.sqrt(subDimVariances[d])
+  })).sort((a, b) => b.variance - a.variance);
+
+  // Demographic gaps: max-min for each (demo, sub-dim) pair
+  const demoFields = ['level', 'function', 'tenure', 'bu'];
+  const demoGaps = [];
+  demoFields.forEach(field => {
+    DIMS.forEach(d => {
+      const groups = {};
+      respondents.forEach(r => {
+        const g = r.demographics?.[field];
+        if (!g) return;
+        if (!groups[g]) groups[g] = [];
+        groups[g].push(r.sub_dim_scores[d]);
+      });
+      const groupMeans = Object.entries(groups)
+        .filter(([_, vals]) => vals.length >= 2) // Require at least 2 to count as a group
+        .map(([g, vals]) => ({ group: g, mean: vals.reduce((a, b) => a + b, 0) / vals.length, n: vals.length }));
+      if (groupMeans.length < 2) return;
+      const sorted = [...groupMeans].sort((a, b) => b.mean - a.mean);
+      demoGaps.push({
+        demographic: field,
+        dimension: d,
+        dim_label: DIM_LABELS[d],
+        max_group: sorted[0].group,
+        max_value: sorted[0].mean,
+        min_group: sorted[sorted.length - 1].group,
+        min_value: sorted[sorted.length - 1].mean,
+        gap: sorted[0].mean - sorted[sorted.length - 1].mean
+      });
+    });
+  });
+  demoGaps.sort((a, b) => b.gap - a.gap);
+
+  return {
+    respondent_count: respondents.length,
+    centroid: { X: X_org, Y: Y_org },
+    alignment_score: alignmentScore,
+    archetype_mix: archetypeMix,
+    archetype_plurality: archetypePlurality,
+    sub_dim_means: subDimMeans,
+    sub_dim_variances: subDimVariances,
+    fault_lines: faultLines,
+    demographic_gaps: demoGaps
+  };
+}
+
+// =============================================================================
+// STATE
+// =============================================================================
+
+const STATE = {
+  org_id: new URL(window.location.href).searchParams.get('org') || 'demo',
+  respondents: [], // raw submissions (with computed scores)
+  filtered: [],    // after filter
+  rollup: null,
+  filters: { level: '', function: '', tenure: '', bu: '' },
+  freetext_tab: 1
+};
+
+// =============================================================================
+// DATA LOADING
+// =============================================================================
+
+function ingestSubmissions(submissions) {
+  const valid = [];
+  const errors = [];
+  submissions.forEach((s, i) => {
+    if (!s || !s.raw_answers || typeof s.raw_answers !== 'object') {
+      errors.push(`Item ${i}: missing raw_answers`);
+      return;
+    }
+    if (Object.keys(s.raw_answers).length < 30) {
+      errors.push(`Item ${i}: too few answers (${Object.keys(s.raw_answers).length})`);
+      return;
+    }
+    try {
+      valid.push(computeRespondentScores(s));
+    } catch (e) {
+      errors.push(`Item ${i}: ${e.message}`);
+    }
+  });
+  return { valid, errors };
+}
+
+function loadFromFiles(files) {
+  const submissions = [];
+  let pending = files.length;
+  if (pending === 0) return;
+
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (Array.isArray(data)) submissions.push(...data);
+        else submissions.push(data);
+      } catch (err) {
+        console.warn(`Failed to parse ${file.name}:`, err);
+      }
+      pending--;
+      if (pending === 0) {
+        const { valid, errors } = ingestSubmissions(submissions);
+        STATE.respondents = STATE.respondents.concat(valid);
+        if (errors.length) console.warn('Ingest errors:', errors);
+        closeLoadModal();
+        afterDataChange();
+      }
+    };
+    reader.onerror = () => {
+      pending--;
+      if (pending === 0) {
+        const { valid } = ingestSubmissions(submissions);
+        STATE.respondents = STATE.respondents.concat(valid);
+        closeLoadModal();
+        afterDataChange();
+      }
+    };
+    reader.readAsText(file);
+  });
+}
+
+function loadFromPaste() {
+  const raw = document.getElementById('paste-input').value.trim();
+  if (!raw) {
+    showLoadError('Paste a JSON array or object first.');
+    return;
+  }
+  try {
+    const data = JSON.parse(raw);
+    const submissions = Array.isArray(data) ? data : [data];
+    const { valid, errors } = ingestSubmissions(submissions);
+    if (!valid.length) {
+      showLoadError(`No valid submissions found. ${errors[0] || ''}`);
+      return;
+    }
+    STATE.respondents = STATE.respondents.concat(valid);
+    document.getElementById('paste-input').value = '';
+    hideLoadError();
+    closeLoadModal();
+    afterDataChange();
+  } catch (err) {
+    showLoadError(`Could not parse JSON: ${err.message}`);
+  }
+}
+
+function clearAllData() {
+  if (!STATE.respondents.length) return;
+  const btn = document.getElementById('clear-data-btn');
+  if (!btn) return;
+  if (btn.dataset.confirming !== 'yes') {
+    // First click: switch to confirm state
+    btn.dataset.confirming = 'yes';
+    btn.textContent = 'Click again to confirm';
+    btn.style.background = '#fff5f5';
+    setTimeout(() => {
+      if (btn.dataset.confirming === 'yes') {
+        btn.dataset.confirming = '';
+        btn.textContent = 'Clear all data';
+        btn.style.background = '';
+      }
+    }, 4000);
+    return;
+  }
+  // Second click within 4s: actually clear
+  btn.dataset.confirming = '';
+  btn.textContent = 'Clear all data';
+  btn.style.background = '';
+  STATE.respondents = [];
+  STATE.filters = { level: '', function: '', tenure: '', bu: '' };
+  closeLoadModal();
+  afterDataChange();
+}
+
+function showLoadError(msg) {
+  const el = document.getElementById('load-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideLoadError() {
+  document.getElementById('load-error').style.display = 'none';
+}
+
+function openLoadModal() {
+  document.getElementById('loaded-count').textContent = STATE.respondents.length;
+  document.getElementById('load-modal').classList.add('visible');
+}
+function closeLoadModal() {
+  document.getElementById('load-modal').classList.remove('visible');
+  hideLoadError();
+}
+
+// =============================================================================
+// DEMO DATA GENERATOR
+// =============================================================================
+
+function loadDemoData(pattern) {
+  const generators = {
+    mixed:      generateMixedDemo,
+    clustered:  generateClusteredDemo,
+    stratified: generateStratifiedDemo
+  };
+  const gen = generators[pattern] || generators.mixed;
+  STATE.respondents = ingestSubmissions(gen()).valid;
+  closeLoadModal();   // close BEFORE the (potentially-failing) render
+  afterDataChange();
+}
+
+function generateRespondent(level, func, archetypeIdx, jitter = 0.6) {
+  // Generate plausible Likert answers around a target archetype profile
+  const target = ARCHETYPES[archetypeIdx].centroid; // [SC, SCO, RA, DR, CT, HC, AC, CR] in 0-100
+  const answers = {};
+  const id = 'demo-' + Math.random().toString(36).slice(2, 10);
+
+  QUESTIONS.forEach(q => {
+    const dimIdx = DIMS.indexOf(q.dim);
+    const targetScore = target[dimIdx]; // 0-100
+    // Convert target score to expected raw answer (1-5)
+    const expectedRaw = q.reverse
+      ? 5 - (targetScore / 100) * 4
+      : 1 + (targetScore / 100) * 4;
+    // Add jitter (gaussian-ish)
+    const noise = (Math.random() - 0.5 + Math.random() - 0.5) * jitter * 2;
+    let raw = Math.round(expectedRaw + noise);
+    raw = Math.max(1, Math.min(5, raw));
+    answers[q.id] = raw;
+  });
+
+  const tenures = ['<1 year', '1-3 years', '3-7 years', '>7 years'];
+  const bus = ['North America', 'EMEA', 'APAC'];
+  const recallSamples = {
+    'C-suite':           ['Customer retention', 'Operating margin expansion', 'Geographic expansion'],
+    'Senior leader':     ['Customer growth', 'Cost discipline', 'New market entry'],
+    'Middle manager':    ['Hit our quarterly numbers', 'Team retention', 'Process improvement'],
+    'Individual contributor': ['Deliver my projects', 'Quality output', 'Career development'],
+    'Frontline staff':   ['Serve customers', 'Hit my targets', 'Don\'t mess up']
+  };
+
+  return {
+    respondent_id: id,
+    org_id: STATE.org_id,
+    started_at: new Date(Date.now() - 18 * 60000).toISOString(),
+    submitted_at: new Date().toISOString(),
+    demographics: {
+      level: level,
+      function: func,
+      tenure: tenures[Math.floor(Math.random() * tenures.length)],
+      team_size: '5-15',
+      bu: bus[Math.floor(Math.random() * bus.length)]
+    },
+    recall_priorities: recallSamples[level] || ['Strategic priority A', 'Strategic priority B', 'Strategic priority C'],
+    raw_answers: answers,
+    freetext_f1: Math.random() < 0.4 ? `A budget request was stuck for two weeks because no one was sure if Finance or COO owned the call.` : null,
+    freetext_f2: Math.random() < 0.4 ? `We say we value collaboration but the heroes who deliver alone are the ones who get promoted.` : null,
+    schema_version: '0.2'
+  };
+}
+
+// "Mixed" — ~20 respondents, mostly Bureaucrat with some Disciplined and Compliant
+function generateMixedDemo() {
+  const fns = ['Operations', 'Sales', 'Product', 'Engineering / R&D', 'Finance', 'Marketing'];
+  const out = [];
+  // Distribution: mostly Bureaucrat (3), some Disciplined (5), some Compliant in Name (1), few others
+  const config = [
+    { level: 'C-suite',                count: 2, archetypes: [5, 7] }, // Disciplined / Resilient
+    { level: 'Senior leader',          count: 4, archetypes: [3, 5] }, // Bureaucrat / Disciplined
+    { level: 'Middle manager',         count: 7, archetypes: [3, 1, 4] }, // Bureaucrat / Compliant / Reactive
+    { level: 'Individual contributor', count: 5, archetypes: [1, 3, 4] }, // Compliant / Bureaucrat / Reactive
+    { level: 'Frontline staff',        count: 3, archetypes: [1, 0] }  // Compliant / Unanchored
+  ];
+  config.forEach(c => {
+    for (let i = 0; i < c.count; i++) {
+      const arch = c.archetypes[Math.floor(Math.random() * c.archetypes.length)];
+      const fn = fns[Math.floor(Math.random() * fns.length)];
+      out.push(generateRespondent(c.level, fn, arch, 0.5));
+    }
+  });
+  return out;
+}
+
+// "Clustered" — everyone agrees on Resilient (high alignment score)
+function generateClusteredDemo() {
+  const fns = ['Operations', 'Sales', 'Product', 'Engineering / R&D', 'Finance', 'Marketing'];
+  const out = [];
+  const config = [
+    { level: 'C-suite',                count: 2 },
+    { level: 'Senior leader',          count: 4 },
+    { level: 'Middle manager',         count: 7 },
+    { level: 'Individual contributor', count: 5 },
+    { level: 'Frontline staff',        count: 3 }
+  ];
+  config.forEach(c => {
+    for (let i = 0; i < c.count; i++) {
+      const fn = fns[Math.floor(Math.random() * fns.length)];
+      out.push(generateRespondent(c.level, fn, 7, 0.4)); // Resilient with low jitter
+    }
+  });
+  return out;
+}
+
+// "Stratified" — execs see Resilient, frontline sees Compliant in Name (classic perception gap)
+function generateStratifiedDemo() {
+  const fns = ['Operations', 'Sales', 'Product', 'Engineering / R&D', 'Finance', 'Marketing'];
+  const out = [];
+  const config = [
+    { level: 'C-suite',                count: 3, archetype: 7 }, // Resilient
+    { level: 'Senior leader',          count: 4, archetype: 5 }, // Disciplined
+    { level: 'Middle manager',         count: 6, archetype: 3 }, // Bureaucrat
+    { level: 'Individual contributor', count: 5, archetype: 1 }, // Compliant in Name
+    { level: 'Frontline staff',        count: 4, archetype: 0 }  // Unanchored
+  ];
+  config.forEach(c => {
+    for (let i = 0; i < c.count; i++) {
+      const fn = fns[Math.floor(Math.random() * fns.length)];
+      out.push(generateRespondent(c.level, fn, c.archetype, 0.45));
+    }
+  });
+  return out;
+}
+
+// =============================================================================
+// FILTERING
+// =============================================================================
+
+function applyFilters() {
+  STATE.filtered = STATE.respondents.filter(r => {
+    const d = r.demographics || {};
+    if (STATE.filters.level && d.level !== STATE.filters.level) return false;
+    if (STATE.filters.function && d.function !== STATE.filters.function) return false;
+    if (STATE.filters.tenure && d.tenure !== STATE.filters.tenure) return false;
+    if (STATE.filters.bu && d.bu !== STATE.filters.bu) return false;
+    return true;
+  });
+  STATE.rollup = computeOrgRollup(STATE.filtered);
+}
+
+function clearFilters() {
+  STATE.filters = { level: '', function: '', tenure: '', bu: '' };
+  ['filter-level', 'filter-function', 'filter-tenure', 'filter-bu'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  afterDataChange();
+}
+
+function rebuildFilterDropdowns() {
+  const buckets = { level: new Set(), function: new Set(), tenure: new Set(), bu: new Set() };
+  STATE.respondents.forEach(r => {
+    const d = r.demographics || {};
+    Object.keys(buckets).forEach(k => { if (d[k]) buckets[k].add(d[k]); });
+  });
+
+  // Level: ordered
+  const levelSel = document.getElementById('filter-level');
+  levelSel.innerHTML = '<option value="">All</option>';
+  LEVEL_ORDER.forEach(lvl => {
+    if (buckets.level.has(lvl)) {
+      const o = document.createElement('option');
+      o.value = lvl; o.textContent = lvl;
+      levelSel.appendChild(o);
+    }
+  });
+  levelSel.value = STATE.filters.level;
+
+  // Function, Tenure, BU: alphabetical
+  ['function', 'tenure', 'bu'].forEach(field => {
+    const sel = document.getElementById('filter-' + field);
+    sel.innerHTML = '<option value="">All</option>';
+    [...buckets[field]].sort().forEach(v => {
+      const o = document.createElement('option');
+      o.value = v; o.textContent = v;
+      sel.appendChild(o);
+    });
+    sel.value = STATE.filters[field];
+  });
+  // Show BU filter only if there's data
+  document.getElementById('filter-bu-group').style.display = buckets.bu.size > 0 ? 'flex' : 'none';
+}
+
+document.addEventListener('change', e => {
+  if (!e.target.id) return;
+  const m = e.target.id.match(/^filter-(level|function|tenure|bu)$/);
+  if (m) {
+    STATE.filters[m[1]] = e.target.value;
+    afterDataChange();
+  }
+});
+
+// =============================================================================
+// RENDERING
+// =============================================================================
+
+function afterDataChange() {
+  if (!STATE.respondents.length) {
+    document.getElementById('empty-state').style.display = '';
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('filter-strip').style.display = 'none';
+    document.getElementById('respondent-count').textContent = '0 responses';
+    return;
+  }
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('dashboard').style.display = '';
+  document.getElementById('filter-strip').style.display = '';
+
+  applyFilters();
+  rebuildFilterDropdowns();
+  updateFilterStat();
+  renderAll();
+}
+
+function updateFilterStat() {
+  const total = STATE.respondents.length;
+  const shown = STATE.filtered.length;
+  document.getElementById('respondent-count').textContent = `${total} response${total === 1 ? '' : 's'}`;
+  const stat = document.getElementById('filter-stat');
+  if (shown < total) {
+    stat.innerHTML = `Showing <strong>${shown}</strong> of <strong>${total}</strong>`;
+  } else {
+    stat.innerHTML = `Showing <strong>${total}</strong> of <strong>${total}</strong>`;
+  }
+  const anyFilter = Object.values(STATE.filters).some(v => v);
+  document.getElementById('clear-filters').disabled = !anyFilter;
+}
+
+// Helper: hide a card's column (its grid cell) by walking up from a child element
+function hideCardCol(elementOrId) {
+  const el = typeof elementOrId === 'string' ? document.getElementById(elementOrId) : elementOrId;
+  if (!el) return;
+  const col = el.closest('[data-card-col]');
+  if (col) col.style.display = 'none';
+}
+
+function renderAll() {
+  if (!STATE.rollup || !STATE.filtered.length) {
+    // Filtered to nothing — show empty-ish state in the cards
+    renderEmptyDashboard();
+    return;
+  }
+  // First, reset all card-column visibility so we start fresh each render
+  document.querySelectorAll('[data-card-col]').forEach(el => { el.style.display = ''; });
+
+  // Each render isolated so a single failure (e.g. Chart.js missing) doesn't kill the rest
+  const renders = [
+    ['headline stats',  renderHeadlineStats],
+    ['constellation',   renderConstellation],
+    ['archetype mix',   renderArchetypeMix],
+    ['radar chart',     renderRadar],
+    ['heatmap',         renderHeatmap],
+    ['fault lines',     renderFaultLines],
+    ['demographic gaps', renderDemoGaps],
+    ['recall gallery',  renderRecallGallery],
+    ['free-text gallery', renderFreetextGallery]
+  ];
+  renders.forEach(([label, fn]) => {
+    try { fn(); } catch (e) { console.error(`Render failed: ${label}`, e); }
+  });
+
+  // Post-render layout: expand surviving paired columns to full width;
+  // hide entire row if both halves are hidden.
+  ['row-radar-heatmap', 'row-fault-demo'].forEach(rowId => {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    const cols = row.querySelectorAll('[data-card-col]');
+    const visible = [...cols].filter(c => c.style.display !== 'none');
+    if (visible.length === 0) {
+      row.style.display = 'none';
+    } else {
+      row.style.display = '';
+      if (visible.length === 1) {
+        // Promote the surviving half to full width
+        visible[0].classList.remove('col-6');
+        visible[0].classList.add('col-12');
+        visible[0].dataset.expanded = 'yes';
+      } else {
+        // Both visible — restore col-6 if previously expanded
+        cols.forEach(c => {
+          if (c.dataset.expanded === 'yes') {
+            c.classList.remove('col-12');
+            c.classList.add('col-6');
+            delete c.dataset.expanded;
+          }
+        });
+      }
+    }
+  });
+
+  // Hide the row entirely for full-width sections (recall, freetext) if their card is hidden
+  ['row-recall', 'row-freetext'].forEach(rowId => {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    const col = row.querySelector('[data-card-col]');
+    row.style.display = (col && col.style.display === 'none') ? 'none' : '';
+  });
+}
+
+function renderEmptyDashboard() {
+  ['stat-alignment', 'stat-archetype', 'stat-x', 'stat-y'].forEach(id => {
+    document.getElementById(id).textContent = '—';
+  });
+  document.getElementById('stat-alignment-band').innerHTML = '';
+  document.getElementById('stat-archetype-detail').textContent = 'No respondents in current filter';
+  document.getElementById('archetype-mix').innerHTML = '<div class="mini-empty">No data for current filter</div>';
+  document.getElementById('constellation').innerHTML = '';
+  document.getElementById('heatmap-table').innerHTML = '';
+  document.getElementById('fault-lines-table').innerHTML = '';
+  document.getElementById('demo-gaps-table').innerHTML = '';
+  document.getElementById('recall-gallery').innerHTML = '<div class="mini-empty">No responses match the current filter</div>';
+  document.getElementById('freetext-gallery').innerHTML = '<div class="mini-empty">No responses match the current filter</div>';
+  if (window._radarChart) { window._radarChart.destroy(); window._radarChart = null; }
+}
+
+function renderHeadlineStats() {
+  const r = STATE.rollup;
+  document.getElementById('stat-alignment').textContent = Math.round(r.alignment_score);
+  const band = r.alignment_score >= 60 ? ['high', 'High'] : r.alignment_score >= 40 ? ['mid', 'Moderate'] : ['low', 'Low'];
+  document.getElementById('stat-alignment-band').innerHTML = `<span class="stat-band band-${band[0]}">${band[1]} alignment</span>`;
+
+  // Dominant archetype = highest archetype_mix
+  let topIdx = 0;
+  r.archetype_mix.forEach((p, i) => { if (p > r.archetype_mix[topIdx]) topIdx = i; });
+  const topPct = Math.round(r.archetype_mix[topIdx] * 100);
+  document.getElementById('stat-archetype').textContent = ARCHETYPES[topIdx].name;
+  document.getElementById('stat-archetype-detail').textContent = `${topPct}% dominant · ${ARCHETYPES[topIdx].short}`;
+
+  document.getElementById('stat-x').textContent = Math.round(r.centroid.X);
+  document.getElementById('stat-y').textContent = Math.round(r.centroid.Y);
+
+  // X / Y context labels (above/below midline)
+  setAxisLabel('stat-x-label', r.centroid.X);
+  setAxisLabel('stat-y-label', r.centroid.Y);
+
+  // Gauge: Alignment Score — 5 bands at 20/40/60/80
+  renderAlignmentGauge('gauge-alignment', r.alignment_score);
+  // Gauge: X (Strategic Coherence) — 0-100 with midline at 50
+  renderAxisGauge('gauge-x', r.centroid.X, 'x-label');
+  // Gauge: Y (Execution Coordination) — 0-100 with midline at 50
+  renderAxisGauge('gauge-y', r.centroid.Y, 'y-label');
+}
+
+function setAxisLabel(elId, score) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  let label, cls;
+  if (score >= 75)      { label = 'Strong'; cls = 'is-high'; }
+  else if (score >= 60) { label = 'Above average'; cls = 'is-high'; }
+  else if (score >= 40) { label = 'Mid-range'; cls = 'is-mid'; }
+  else                  { label = 'Below average'; cls = 'is-low'; }
+  el.textContent = label;
+  el.className = 'stat-band-label ' + cls;
+}
+
+function renderAlignmentGauge(svgId, score) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  // 5 bands across viewBox 0..200 (width), height ~22
+  const bands = [
+    { from: 0,  to: 20,  color: '#ef4444', alpha: 0.85 }, // crisis
+    { from: 20, to: 40,  color: '#e57373', alpha: 0.85 }, // fragmented
+    { from: 40, to: 60,  color: '#f4a621', alpha: 0.85 }, // misaligned
+    { from: 60, to: 80,  color: '#7ec08e', alpha: 0.85 }, // generally aligned
+    { from: 80, to: 100, color: '#2a9d8f', alpha: 0.85 }, // highly aligned
+  ];
+  const trackY = 8, trackH = 8;
+  const scale = v => v * 2; // 0..100 -> 0..200
+
+  let parts = [];
+  bands.forEach((b, i) => {
+    const x1 = scale(b.from);
+    const x2 = scale(b.to);
+    const r1 = i === 0 ? 4 : 0;
+    const r2 = i === bands.length - 1 ? 4 : 0;
+    // Use rect with rounded corners only on the ends
+    parts.push(
+      `<rect x="${x1}" y="${trackY}" width="${x2 - x1}" height="${trackH}" ` +
+      `fill="${b.color}" fill-opacity="${b.alpha}" rx="${i === 0 || i === bands.length - 1 ? 4 : 0}"/>`
+    );
+  });
+
+  // Marker (vertical line + dot) at the score
+  const mx = scale(Math.max(0, Math.min(100, score)));
+  parts.push(
+    `<line x1="${mx}" y1="${trackY - 4}" x2="${mx}" y2="${trackY + trackH + 4}" stroke="#0d1f36" stroke-width="2"/>`
+  );
+  parts.push(
+    `<circle cx="${mx}" cy="${trackY + trackH / 2}" r="5" fill="#0d1f36" stroke="#fff" stroke-width="2"/>`
+  );
+
+  svg.innerHTML = parts.join('');
+}
+
+function renderAxisGauge(svgId, score, labelId) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const trackY = 8, trackH = 8;
+  const scale = v => v * 2;
+  const mx = scale(Math.max(0, Math.min(100, score)));
+
+  // Background track gradient: red → amber → teal across 0..100
+  // Implemented as 3 bands (0-50 reddish, 50-50 midline, 50-100 greenish)
+  let parts = [];
+  parts.push(
+    `<rect x="0" y="${trackY}" width="100" height="${trackH}" fill="#fef3e2" rx="4"/>`
+  );
+  parts.push(
+    `<rect x="100" y="${trackY}" width="100" height="${trackH}" fill="#edf7f5" rx="4"/>`
+  );
+  // Midline at 50
+  parts.push(
+    `<line x1="100" y1="${trackY - 2}" x2="100" y2="${trackY + trackH + 2}" stroke="#8493a8" stroke-width="0.8" stroke-dasharray="2,2"/>`
+  );
+  // Score marker
+  parts.push(
+    `<circle cx="${mx}" cy="${trackY + trackH / 2}" r="5" fill="#2ec4b6" stroke="#fff" stroke-width="2"/>`
+  );
+  svg.innerHTML = parts.join('');
+}
+
+// =============================================================================
+// CONSTELLATION PLOT (SVG)
+// =============================================================================
+
+function renderConstellation() {
+  const svg = document.getElementById('constellation');
+  const VB_W = 700, VB_H = 540;
+  const PAD = { l: 50, r: 30, t: 30, b: 50 };
+  const W = VB_W - PAD.l - PAD.r;
+  const H = VB_H - PAD.t - PAD.b;
+
+  // Coordinate mapping: 0..100 -> pixel
+  const x = v => PAD.l + (v / 100) * W;
+  const y = v => PAD.t + ((100 - v) / 100) * H; // Y inverted: high score = top
+
+  let parts = [];
+
+  // Background quadrant tints (very subtle)
+  // Lower-left (bad-bad)
+  parts.push(`<rect x="${x(0)}" y="${y(50)}" width="${x(50) - x(0)}" height="${y(0) - y(50)}" fill="#fff5f5" opacity="0.4"/>`);
+  // Upper-right (good-good)
+  parts.push(`<rect x="${x(50)}" y="${y(100)}" width="${x(100) - x(50)}" height="${y(50) - y(100)}" fill="#edf7f5" opacity="0.5"/>`);
+
+  // Grid lines at 25, 50, 75
+  [25, 50, 75].forEach(g => {
+    parts.push(`<line x1="${x(g)}" y1="${y(0)}" x2="${x(g)}" y2="${y(100)}" stroke="#d4dde8" stroke-width="0.5" stroke-dasharray="${g === 50 ? '0' : '3,3'}"/>`);
+    parts.push(`<line x1="${x(0)}" y1="${y(g)}" x2="${x(100)}" y2="${y(g)}" stroke="#d4dde8" stroke-width="0.5" stroke-dasharray="${g === 50 ? '0' : '3,3'}"/>`);
+  });
+
+  // Axis labels
+  parts.push(`<text x="${PAD.l + W/2}" y="${VB_H - 12}" text-anchor="middle" font-size="11" font-weight="500" fill="#8493a8" letter-spacing="0.5">STRATEGIC COHERENCE →</text>`);
+  parts.push(`<text x="14" y="${PAD.t + H/2}" text-anchor="middle" font-size="11" font-weight="500" fill="#8493a8" letter-spacing="0.5" transform="rotate(-90 14 ${PAD.t + H/2})">EXECUTION COORDINATION →</text>`);
+
+  // Tick labels
+  [0, 25, 50, 75, 100].forEach(t => {
+    parts.push(`<text x="${x(t)}" y="${VB_H - 30}" text-anchor="middle" font-size="9" fill="#8493a8">${t}</text>`);
+    parts.push(`<text x="${PAD.l - 8}" y="${y(t) + 3}" text-anchor="end" font-size="9" fill="#8493a8">${t}</text>`);
+  });
+
+  // Archetype centroids — 8D centroids, but plotted using their X/Y projection
+  ARCHETYPES.forEach((a, i) => {
+    const aX = (a.centroid[0] + a.centroid[1] + a.centroid[2] + a.centroid[4]) / 4; // SC, SCO, RA, CT
+    const aY = (a.centroid[3] + a.centroid[5] + a.centroid[6] + a.centroid[7]) / 4; // DR, HC, AC, CR
+    parts.push(`<g class="archetype-marker" data-idx="${i}">
+      <circle cx="${x(aX)}" cy="${y(aY)}" r="5" fill="#fff" stroke="#8493a8" stroke-width="1.5"/>
+      <circle cx="${x(aX)}" cy="${y(aY)}" r="2" fill="#8493a8"/>
+      <text x="${x(aX) + 8}" y="${y(aY) + 3}" font-size="10" font-weight="500" fill="#8493a8">${a.name}</text>
+    </g>`);
+  });
+
+  // Respondent dots — color by level
+  STATE.filtered.forEach(r => {
+    const c = LEVEL_COLORS[r.demographics?.level] || '#8493a8';
+    parts.push(`<circle cx="${x(r.axes.X)}" cy="${y(r.axes.Y)}" r="6" fill="${c}" fill-opacity="0.7" stroke="#fff" stroke-width="1.5" class="respondent-dot" data-id="${r.respondent_id}" style="cursor: pointer"/>`);
+  });
+
+  // Centroid (org-level mean) as a larger marker
+  const c = STATE.rollup.centroid;
+  parts.push(`<circle cx="${x(c.X)}" cy="${y(c.Y)}" r="11" fill="#2ec4b6" fill-opacity="0.18" stroke="#2ec4b6" stroke-width="2"/>`);
+  parts.push(`<circle cx="${x(c.X)}" cy="${y(c.Y)}" r="3" fill="#2ec4b6"/>`);
+
+  svg.innerHTML = parts.join('');
+
+  // Hover tooltips on respondent dots
+  svg.querySelectorAll('.respondent-dot').forEach(dot => {
+    dot.addEventListener('mouseenter', e => {
+      const r = STATE.filtered.find(x => x.respondent_id === dot.dataset.id);
+      if (!r) return;
+      const name = r.respondent_name || 'Anonymous';
+      const subRows = DIMS.map(d => {
+        const v = Math.round(r.sub_dim_scores[d]);
+        return `<div class="tt-row tt-sub"><span>${DIM_LABELS[d]}</span><span>${v}</span></div>`;
+      }).join('');
+      showTooltip(e, `
+        <strong>${name}</strong>
+        <div class="tt-meta">${r.demographics?.level || 'Unknown'} \u00B7 ${r.demographics?.function || ''}</div>
+        <div class="tt-row"><span>Strategic coherence (X)</span><span>${Math.round(r.axes.X)}</span></div>
+        <div class="tt-row"><span>Execution coordination (Y)</span><span>${Math.round(r.axes.Y)}</span></div>
+        <div class="tt-row"><span>Dominant archetype</span><span>${r.dominant_archetype} (${Math.round(r.archetype_confidence * 100)}%)</span></div>
+        <div class="tt-divider"></div>
+        ${subRows}
+      `);
+    });
+    dot.addEventListener('mousemove', positionTooltip);
+    dot.addEventListener('mouseleave', hideTooltip);
+  });
+
+  // Hover on archetype markers
+  svg.querySelectorAll('.archetype-marker').forEach(g => {
+    g.addEventListener('mouseenter', e => {
+      const a = ARCHETYPES[parseInt(g.dataset.idx, 10)];
+      const mixPct = Math.round(STATE.rollup.archetype_mix[parseInt(g.dataset.idx, 10)] * 100);
+      showTooltip(e, `<strong>${a.name}</strong><div>${a.short}</div><div class="tt-row"><span>Org mix</span><span>${mixPct}%</span></div>`);
+    });
+    g.addEventListener('mousemove', positionTooltip);
+    g.addEventListener('mouseleave', hideTooltip);
+  });
+
+  // Build legend
+  const levelsPresent = new Set(STATE.filtered.map(r => r.demographics?.level).filter(Boolean));
+  const legendEl = document.getElementById('constellation-legend');
+  let legend = '';
+  LEVEL_ORDER.forEach(lvl => {
+    if (levelsPresent.has(lvl)) {
+      const count = STATE.filtered.filter(r => r.demographics?.level === lvl).length;
+      legend += `<div class="legend-item"><span class="legend-dot" style="background: ${LEVEL_COLORS[lvl]}"></span>${LEVEL_SHORT[lvl]} (${count})</div>`;
+    }
+  });
+  legend += `<div class="legend-item" style="margin-left: auto;"><span class="legend-dot" style="background: transparent; border: 2px solid #8493a8;"></span>Archetype centroid</div>`;
+  legend += `<div class="legend-item"><span class="legend-dot" style="background: #2ec4b6"></span>Org centroid</div>`;
+  legendEl.innerHTML = legend;
+}
+
+// =============================================================================
+// ARCHETYPE MIX BARS
+// =============================================================================
+
+function renderArchetypeMix() {
+  const r = STATE.rollup;
+  let topIdx = 0;
+  r.archetype_mix.forEach((p, i) => { if (p > r.archetype_mix[topIdx]) topIdx = i; });
+  // Sort by probability desc
+  const sortedIdx = ARCHETYPES.map((_, i) => i).sort((a, b) => r.archetype_mix[b] - r.archetype_mix[a]);
+  const html = sortedIdx.map(i => {
+    const pct = r.archetype_mix[i] * 100;
+    const isDom = i === topIdx;
+    const plurality = r.archetype_plurality[ARCHETYPES[i].name] || 0;
+    return `
+      <div class="archetype-row${isDom ? ' dominant' : ''}" title="${plurality} respondent${plurality === 1 ? '' : 's'} predominantly ${ARCHETYPES[i].name}">
+        <div class="archetype-name">${ARCHETYPES[i].name}</div>
+        <div class="archetype-bar"><div class="archetype-bar-fill" style="width: ${pct}%"></div></div>
+        <div class="archetype-pct">${pct.toFixed(1)}%</div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('archetype-mix').innerHTML = html;
+}
+
+// =============================================================================
+// RADAR CHART (Chart.js)
+// =============================================================================
+
+function renderRadar() {
+  // Hide the radar card if Chart.js failed to load (e.g. blocked CDN, offline use).
+  // The same sub-dimension data is still available in the heatmap.
+  if (typeof Chart === 'undefined') {
+    hideCardCol('radar-chart');
+    return;
+  }
+
+  const ctx = document.getElementById('radar-chart').getContext('2d');
+  if (window._radarChart) window._radarChart.destroy();
+
+  // Build datasets: one per level present (or one for "All" if no levels)
+  const levelsPresent = LEVEL_ORDER.filter(lvl =>
+    STATE.filtered.some(r => r.demographics?.level === lvl)
+  );
+
+  const datasets = levelsPresent.map(lvl => {
+    const subset = STATE.filtered.filter(r => r.demographics?.level === lvl);
+    const meansByDim = DIMS.map(d => {
+      const vals = subset.map(r => r.sub_dim_scores[d]);
+      return vals.reduce((a, b) => a + b, 0) / vals.length;
+    });
+    const color = LEVEL_COLORS[lvl];
+    return {
+      label: `${LEVEL_SHORT[lvl]} (${subset.length})`,
+      data: meansByDim,
+      borderColor: color,
+      backgroundColor: hexWithAlpha(color, 0.15),
+      borderWidth: 2,
+      pointBackgroundColor: color,
+      pointRadius: 3,
+      pointHoverRadius: 5
+    };
+  });
+
+  // If only one level (or filter produced flat dataset), also add an "All" line
+  if (datasets.length <= 1) {
+    const allMeans = DIMS.map(d => STATE.rollup.sub_dim_means[d]);
+    datasets.unshift({
+      label: 'All respondents',
+      data: allMeans,
+      borderColor: '#0d1f36',
+      backgroundColor: 'rgba(13, 31, 54, 0.08)',
+      borderWidth: 2,
+      pointBackgroundColor: '#0d1f36',
+      pointRadius: 3
+    });
+  }
+
+  window._radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: DIMS.map(d => DIM_LABELS[d]),
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            font: { family: "'Poppins', sans-serif", size: 11 },
+            padding: 12,
+            boxWidth: 14
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: ${Math.round(ctx.parsed.r)}`
+          }
+        }
+      },
+      scales: {
+        r: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            stepSize: 25,
+            font: { family: "'Poppins', sans-serif", size: 10 },
+            color: '#8493a8',
+            backdropColor: 'transparent'
+          },
+          pointLabels: {
+            font: { family: "'Poppins', sans-serif", size: 11, weight: '500' },
+            color: '#0d1f36'
+          },
+          grid: { color: '#d4dde8' },
+          angleLines: { color: '#d4dde8' }
+        }
+      }
+    }
+  });
+}
+
+function hexWithAlpha(hex, a) {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
+// =============================================================================
+// HEATMAP
+// =============================================================================
+
+function renderHeatmap() {
+  const levelsPresent = LEVEL_ORDER.filter(lvl =>
+    STATE.filtered.some(r => r.demographics?.level === lvl)
+  );
+
+  // Heatmap is only meaningful with 2+ distinct levels — otherwise hide
+  if (levelsPresent.length < 2) {
+    hideCardCol('heatmap-table');
+    return;
+  }
+
+  // Header
+  let html = '<thead><tr><th>Sub-dimension</th>';
+  levelsPresent.forEach(lvl => {
+    const count = STATE.filtered.filter(r => r.demographics?.level === lvl).length;
+    html += `<th>${LEVEL_SHORT[lvl]}<br><span style="font-weight:400;font-size:9px;">(${count})</span></th>`;
+  });
+  html += '<th>All</th>';
+  html += '</tr></thead><tbody>';
+
+  // Rows
+  DIMS.forEach(d => {
+    html += `<tr><td>${DIM_LABELS[d]}</td>`;
+    levelsPresent.forEach(lvl => {
+      const subset = STATE.filtered.filter(r => r.demographics?.level === lvl);
+      if (subset.length === 0) {
+        html += '<td><div class="heatmap-cell empty">—</div></td>';
+        return;
+      }
+      const vals = subset.map(r => r.sub_dim_scores[d]);
+      const m = vals.reduce((a, b) => a + b, 0) / vals.length;
+      html += `<td><div class="heatmap-cell" style="background: ${heatmapColor(m)}">${Math.round(m)}</div></td>`;
+    });
+    const allMean = STATE.rollup.sub_dim_means[d];
+    html += `<td><div class="heatmap-cell" style="background: ${heatmapColor(allMean)}">${Math.round(allMean)}</div></td>`;
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  document.getElementById('heatmap-table').innerHTML = html;
+}
+
+function heatmapColor(score) {
+  // Red (0) -> Amber (50) -> Green (100)
+  // Stop colors: #c62828 -> #f4a621 -> #2a9d8f
+  const stops = [
+    { v: 0,   c: [198, 40, 40] },
+    { v: 50,  c: [244, 166, 33] },
+    { v: 100, c: [42, 157, 143] }
+  ];
+  let lower = stops[0], upper = stops[stops.length - 1];
+  for (let i = 0; i < stops.length - 1; i++) {
+    if (score >= stops[i].v && score <= stops[i + 1].v) {
+      lower = stops[i]; upper = stops[i + 1];
+      break;
+    }
+  }
+  const t = (score - lower.v) / (upper.v - lower.v);
+  const c = [
+    Math.round(lower.c[0] + (upper.c[0] - lower.c[0]) * t),
+    Math.round(lower.c[1] + (upper.c[1] - lower.c[1]) * t),
+    Math.round(lower.c[2] + (upper.c[2] - lower.c[2]) * t)
+  ];
+  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+}
+
+// =============================================================================
+// FAULT LINES TABLE
+// =============================================================================
+
+function renderFaultLines() {
+  const r = STATE.rollup;
+  const maxStdev = Math.max(...r.fault_lines.map(f => f.stdev));
+  let html = `<thead><tr><th>#</th><th>Sub-dimension</th><th>Mean</th><th>Std dev (spread)</th></tr></thead><tbody>`;
+  r.fault_lines.forEach((f, i) => {
+    const barWidth = (f.stdev / maxStdev) * 100;
+    html += `<tr>
+      <td class="rank-num">${i + 1}</td>
+      <td>${f.label}</td>
+      <td>${Math.round(r.sub_dim_means[f.dimension])}</td>
+      <td>
+        <strong style="font-variant-numeric: tabular-nums;">${f.stdev.toFixed(1)}</strong>
+        <span class="gap-bar-container"><span class="gap-bar-fill" style="width: ${barWidth}%; background: ${i < 3 ? '#f4a621' : '#d4dde8'}"></span></span>
+      </td>
+    </tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('fault-lines-table').innerHTML = html;
+}
+
+// =============================================================================
+// DEMOGRAPHIC GAPS TABLE
+// =============================================================================
+
+function renderDemoGaps() {
+  const r = STATE.rollup;
+  const top = r.demographic_gaps.slice(0, 8);
+  if (!top.length) {
+    hideCardCol('demo-gaps-table');
+    return;
+  }
+  const maxGap = Math.max(...top.map(g => g.gap));
+  let html = `<thead><tr><th>#</th><th>Where</th><th>Spread</th></tr></thead><tbody>`;
+  top.forEach((g, i) => {
+    const w = (g.gap / maxGap) * 100;
+    html += `<tr>
+      <td class="rank-num">${i + 1}</td>
+      <td>
+        <div style="font-weight: 500; color: var(--navy);">${g.dim_label}</div>
+        <div style="font-size: 11px; color: var(--mid); margin-top: 2px;">${capitalizeFirst(g.demographic)} · ${truncate(g.max_group, 20)} (${Math.round(g.max_value)}) → ${truncate(g.min_group, 20)} (${Math.round(g.min_value)})</div>
+      </td>
+      <td>
+        <strong style="font-variant-numeric: tabular-nums;">${g.gap.toFixed(1)}</strong>
+        <span class="gap-bar-container"><span class="gap-bar-fill" style="width: ${w}%"></span></span>
+      </td>
+    </tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('demo-gaps-table').innerHTML = html;
+}
+
+function capitalizeFirst(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function truncate(s, n) { return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+
+// =============================================================================
+// RECALL GALLERY
+// =============================================================================
+
+function renderRecallGallery() {
+  const cards = STATE.filtered
+    .filter(r => r.recall_priorities && r.recall_priorities.some(p => p && p.trim()))
+    .map(r => {
+      const lvl = r.demographics?.level || 'Unknown';
+      const fn = r.demographics?.function || '';
+      const levelClass = {
+        'C-suite': 'level-c',
+        'Senior leader': 'level-senior',
+        'Middle manager': 'level-middle',
+        'Individual contributor': 'level-ic',
+        'Frontline staff': 'level-frontline'
+      }[lvl] || '';
+      const items = r.recall_priorities
+        .filter(p => p && p.trim())
+        .map(p => `<li>${escapeHtml(p)}</li>`)
+        .join('');
+      return `<div class="recall-card ${levelClass}">
+        <div class="recall-meta">${LEVEL_SHORT[lvl] || lvl}${fn ? ' · ' + fn : ''}</div>
+        <ul class="recall-list">${items}</ul>
+      </div>`;
+    });
+  if (!cards.length) {
+    hideCardCol('recall-gallery');
+    return;
+  }
+  document.getElementById('recall-gallery').innerHTML = cards.join('');
+}
+
+// =============================================================================
+// FREE-TEXT GALLERY
+// =============================================================================
+
+function renderFreetextGallery() {
+  // Check if any free-text exists across either field; if not, hide the whole card
+  const hasAnyFreetext = STATE.filtered.some(r =>
+    (r.freetext_f1 && r.freetext_f1.trim()) ||
+    (r.freetext_f2 && r.freetext_f2.trim())
+  );
+  if (!hasAnyFreetext) {
+    hideCardCol('freetext-gallery');
+    return;
+  }
+
+  const field = STATE.freetext_tab === 1 ? 'freetext_f1' : 'freetext_f2';
+  const cards = STATE.filtered
+    .filter(r => r[field] && r[field].trim())
+    .map(r => {
+      const lvl = r.demographics?.level || 'Unknown';
+      const fn = r.demographics?.function || '';
+      return `<div class="freetext-card">
+        <div class="freetext-meta">${LEVEL_SHORT[lvl] || lvl}${fn ? ' · ' + fn : ''}</div>
+        ${escapeHtml(r[field])}
+      </div>`;
+    });
+  const html = cards.length ? cards.join('') : '<div class="mini-empty">No responses to this question</div>';
+  document.getElementById('freetext-gallery').innerHTML = html;
+}
+
+function setFTTab(n) {
+  STATE.freetext_tab = n;
+  document.getElementById('ft-tab-1').classList.toggle('active', n === 1);
+  document.getElementById('ft-tab-2').classList.toggle('active', n === 2);
+  renderFreetextGallery();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// =============================================================================
+// TOOLTIP
+// =============================================================================
+
+const TT = document.getElementById('tooltip');
+function showTooltip(e, html) {
+  TT.innerHTML = html;
+  TT.style.display = 'block';
+  positionTooltip(e);
+}
+function positionTooltip(e) {
+  const r = TT.getBoundingClientRect();
+  let x = e.pageX + 14;
+  let y = e.pageY + 14;
+  if (x + r.width > window.innerWidth - 10) x = e.pageX - r.width - 14;
+  if (y + r.height > window.innerHeight + window.scrollY - 10) y = e.pageY - r.height - 14;
+  TT.style.left = x + 'px';
+  TT.style.top = y + 'px';
+}
+function hideTooltip() {
+  TT.style.display = 'none';
+}
+
+// =============================================================================
+// INIT
+// =============================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('org-pill').textContent = STATE.org_id;
+  document.title = `Alignment Diagnostic Dashboard · ${STATE.org_id}`;
+  document.getElementById('file-input').addEventListener('change', e => {
+    if (e.target.files.length) loadFromFiles([...e.target.files]);
+  });
+  // Click outside modal to close
+  document.getElementById('load-modal').addEventListener('click', e => {
+    if (e.target.id === 'load-modal') closeLoadModal();
+  });
+
+  // Auto-loaded data for this engagement
+  setTimeout(() => {
+    const PRELOAD = [
+  {
+    "respondent_id": "8c42b914-fd8a-57b4-8017-bc797caca45a",
+    "respondent_name": "Mike Petersen",
+    "org_id": "pando-combined-2026",
+    "started_at": "2026-05-08T12:00:00+00:00",
+    "submitted_at": "2026-05-08T12:14:00+00:00",
+    "demographics": {
+      "level": "C-suite",
+      "function": "Operations",
+      "tenure": "More than 7 years",
+      "team_size": "Not provided",
+      "bu": "Not provided"
+    },
+    "recall_priorities": [],
+    "raw_answers": {
+      "SC1": 4,
+      "SC2": 3,
+      "SC3": 4,
+      "SC4": 4,
+      "SCO1": 3,
+      "SCO2": 5,
+      "SCO3": 5,
+      "SCO4": 3,
+      "RA1": 4,
+      "RA2": 4,
+      "RA3": 2,
+      "RA4": 4,
+      "DR1": 3,
+      "DR2": 4,
+      "DR3": 3,
+      "DR4": 5,
+      "DR5": 3,
+      "CT1": 5,
+      "CT2": 4,
+      "CT3": 4,
+      "CT4": 3,
+      "HC1": 4,
+      "HC2": 2,
+      "HC3": 4,
+      "HC4": 3,
+      "HC5": 4,
+      "AC1": 4,
+      "AC2": 2,
+      "AC3": 2,
+      "AC4": 4,
+      "CR1": 4,
+      "CR2": 5,
+      "CR3": 2,
+      "CR4": 4
+    },
+    "freetext_f1": "",
+    "freetext_f2": "",
+    "schema_version": "0.2"
+  },
+  {
+    "respondent_id": "a4ab51d9-a971-56f6-aaa6-74074a4fed75",
+    "respondent_name": "Megan Kirby",
+    "org_id": "pando-combined-2026",
+    "started_at": "2026-05-08T12:30:00+00:00",
+    "submitted_at": "2026-05-08T12:44:00+00:00",
+    "demographics": {
+      "level": "Manager",
+      "function": "Sales / Training",
+      "tenure": "3-7 years",
+      "team_size": "Not provided",
+      "bu": "Not provided"
+    },
+    "recall_priorities": [],
+    "raw_answers": {
+      "SC1": 4,
+      "SC2": 3,
+      "SC3": 4,
+      "SC4": 4,
+      "SCO1": 5,
+      "SCO2": 5,
+      "SCO3": 4,
+      "SCO4": 3,
+      "RA1": 4,
+      "RA2": 3,
+      "RA3": 2,
+      "RA4": 3,
+      "DR1": 5,
+      "DR2": 4,
+      "DR3": 1,
+      "DR4": 5,
+      "DR5": 3,
+      "CT1": 4,
+      "CT2": 4,
+      "CT3": 4,
+      "CT4": 4,
+      "HC1": 3,
+      "HC2": 3,
+      "HC3": 3,
+      "HC4": 2,
+      "HC5": 4,
+      "AC1": 3,
+      "AC2": 3,
+      "AC3": 2,
+      "AC4": 4,
+      "CR1": 3,
+      "CR2": 5,
+      "CR3": 2,
+      "CR4": 5
+    },
+    "freetext_f1": "",
+    "freetext_f2": "",
+    "schema_version": "0.2"
+  },
+  {
+    "respondent_id": "857f04a3-816d-5930-aa3b-427ff3d6f5af",
+    "respondent_name": "Olivia Petersen",
+    "org_id": "pando-combined-2026",
+    "started_at": "2026-05-08T13:00:00+00:00",
+    "submitted_at": "2026-05-08T13:14:00+00:00",
+    "demographics": {
+      "level": "Owner",
+      "function": "Marketing",
+      "tenure": "More than 7 years",
+      "team_size": "Not provided",
+      "bu": "Not provided"
+    },
+    "recall_priorities": [],
+    "raw_answers": {
+      "SC1": 5,
+      "SC2": 3,
+      "SC3": 5,
+      "SC4": 2,
+      "SCO1": 5,
+      "SCO2": 4,
+      "SCO3": 5,
+      "SCO4": 4,
+      "RA1": 4,
+      "RA2": 4,
+      "RA3": 2,
+      "RA4": 4,
+      "DR1": 5,
+      "DR2": 4,
+      "DR3": 2,
+      "DR4": 5,
+      "DR5": 4,
+      "CT1": 5,
+      "CT2": 4,
+      "CT3": 5,
+      "CT4": 5,
+      "HC1": 5,
+      "HC2": 2,
+      "HC3": 3,
+      "HC4": 4,
+      "HC5": 5,
+      "AC1": 4,
+      "AC2": 4,
+      "AC3": 2,
+      "AC4": 5,
+      "CR1": 5,
+      "CR2": 5,
+      "CR3": 2,
+      "CR4": 5
+    },
+    "freetext_f1": "",
+    "freetext_f2": "",
+    "schema_version": "0.2"
+  },
+  {
+    "respondent_id": "78409890-aaf8-5a69-9ad6-614620bf03b6",
+    "respondent_name": "Shane Martin",
+    "org_id": "pando-combined-2026",
+    "started_at": "2026-05-08T13:30:00+00:00",
+    "submitted_at": "2026-05-08T13:44:00+00:00",
+    "demographics": {
+      "level": "Manager",
+      "function": "Sales",
+      "tenure": "1-3 years",
+      "team_size": "Not provided",
+      "bu": "Not provided"
+    },
+    "recall_priorities": [],
+    "raw_answers": {
+      "SC1": 4,
+      "SC2": 3,
+      "SC3": 3,
+      "SC4": 2,
+      "SCO1": 4,
+      "SCO2": 4,
+      "SCO3": 3,
+      "SCO4": 4,
+      "RA1": 4,
+      "RA2": 4,
+      "RA3": 2,
+      "RA4": 3,
+      "DR1": 4,
+      "DR2": 3,
+      "DR3": 2,
+      "DR4": 3,
+      "DR5": 2,
+      "CT1": 4,
+      "CT2": 4,
+      "CT3": 4,
+      "CT4": 4,
+      "HC1": 4,
+      "HC2": 3,
+      "HC3": 4,
+      "HC4": 4,
+      "HC5": 4,
+      "AC1": 4,
+      "AC2": 3,
+      "AC3": 3,
+      "AC4": 4,
+      "CR1": 4,
+      "CR2": 5,
+      "CR3": 2,
+      "CR4": 4
+    },
+    "freetext_f1": "",
+    "freetext_f2": "",
+    "schema_version": "0.2"
+  },
+  {
+    "respondent_id": "760421ac-f32a-5db9-94ea-16398da6dac6",
+    "respondent_name": "Roger Steeve",
+    "org_id": "pando-combined-2026",
+    "started_at": "2026-05-08T14:00:00+00:00",
+    "submitted_at": "2026-05-08T14:14:00+00:00",
+    "demographics": {
+      "level": "Owner",
+      "function": "Finance",
+      "tenure": "More than 7 years",
+      "team_size": "Not provided",
+      "bu": "Not provided"
+    },
+    "recall_priorities": [],
+    "raw_answers": {
+      "SC1": 3,
+      "SC2": 4,
+      "SC3": 2,
+      "SC4": 5,
+      "SCO1": 4,
+      "SCO2": 5,
+      "SCO3": 4,
+      "SCO4": 2,
+      "RA1": 4,
+      "RA2": 1,
+      "RA3": 3,
+      "RA4": 2,
+      "DR1": 3,
+      "DR2": 4,
+      "DR3": 2,
+      "DR4": 4,
+      "DR5": 3,
+      "CT1": 4,
+      "CT2": 4,
+      "CT3": 3,
+      "CT4": 3,
+      "HC1": 4,
+      "HC2": 2,
+      "HC3": 3,
+      "HC4": 4,
+      "HC5": 4,
+      "AC1": 4,
+      "AC2": 4,
+      "AC3": 4,
+      "AC4": 4,
+      "CR1": 3,
+      "CR2": 4,
+      "CR3": 3,
+      "CR4": 5
+    },
+    "freetext_f1": "",
+    "freetext_f2": "",
+    "schema_version": "0.2"
+  }
+];
+    const { valid } = ingestSubmissions(PRELOAD);
+    STATE.respondents = valid;
+    STATE.org_id = 'Pando — May 2026 Cohort';
+    document.getElementById('org-pill').textContent = STATE.org_id;
+    document.title = `Alignment Diagnostic Dashboard · ${STATE.org_id}`;
+    afterDataChange();
+  }, 50);
+});
+</script>
+</body>
+</html>
